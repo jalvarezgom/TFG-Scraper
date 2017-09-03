@@ -5,7 +5,6 @@ class tutorialSpider(scrapy.Spider):
     name = "tutorial"
     start_urls = [
         'http://quotes.toscrape.com/page/1/',
-        'http://quotes.toscrape.com/page/2/',
     ]
 
 
@@ -17,18 +16,9 @@ class tutorialSpider(scrapy.Spider):
                 'tags':quote.css("a.tag::text").extract()
             }
 
-            #print(quote.css("span.text::text").extract_first())
-            #print(quote.css("small.author::text").extract_first())
-            #print(quote.css("a.tag::text").extract())
+        siguiente=response.css('li.next a::attr(href)').extract_first()
+        if siguiente is not None:
+            print (siguiente)
+            yield response.follow(siguiente, callback=self.parse)
 
 
-
-''' Forma antigua
-    def start_requests(self):
-        urls = [
-            'http://quotes.toscrape.com/page/1/',
-            'http://quotes.toscrape.com/page/2/',
-        ]
-        for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse)
-'''

@@ -1,27 +1,37 @@
 import scrapy
-
+from Scrapy_Reddit.reddit_item import reddit_item
 
 class QuotesSpider(scrapy.Spider):
     name = "reddit"
+    """allowed_domains=[
+        'https://www.reddit.com'
+    ]"""
+    start_urls = [
+        'https://www.reddit.com/r/pcgaming/'
+    ]
 
-
-'''
-    def start_requests(self):
-        urls = [
-            'http://quotes.toscrape.com/page/1/',
-            'http://quotes.toscrape.com/page/2/',
-        ]
-        for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse)
-  
     def parse(self, response):
+        for topic in response.css("div.thing"):
+            item = reddit_item()
+            item['user'] = topic.css("a.title::text").extract_first()
+            item['title'] = topic.css("a.author::text").extract_first()
+            url=topic.css("a.title::attr(href)").extract_first()
+            if url[:4] != "http":
+                url = "https://www.reddit.com" + url
+            item['url'] = url
 
-        page = response.url.split("/")[-2]
-        filename = 'quotes-%s.html' % page
-        with open(filename, 'wb') as f:
-            f.write(response.body)
-        self.log('Saved file %s' % filename)
-'''
+            request = scrapy.Request(url,callback=self.parse_topic)
+            request.meta['item']=item
+            yield request
+
+
+    def parse_topic(self, response):
+        text = response.css("div.entry div.expando p::text").extract()
+        item = response.meta['item']
+        item['content']= text
+        """print(item)"""
+        yield item
+
 
 
 
