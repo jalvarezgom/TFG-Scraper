@@ -1,5 +1,5 @@
 from app import app
-from flask import render_template
+from flask import render_template, request
 
 
 @app.route('/')
@@ -8,7 +8,13 @@ def index():
     print('Hello world!')
     return render_template('index.html')
 
-@app.route('/user/<username>')
-def user(username):
-    return render_template('search.html', username=username)
+@app.route('/search')
+def search():
+	#Hacer peticion POST adjuntando url del usuario
+	print(request.args["q"])
+	return render_template('search.html')
 
+@app.route('/resultado/<plataforma>/<usuario>')
+def result(plataforma,usuario):
+	print(plataforma + "-" + usuario)
+	return render_template('result.html')
