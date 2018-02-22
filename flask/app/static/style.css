@@ -1,0 +1,48 @@
+body{
+    height: 100vh;
+    background-image: url("../static/socialmedia1.jpg");
+    background-size: 100% 100%;
+
+}
+.logo{
+    text-align: center;
+    font-family: fantasy;
+}
+
+#buscador_input{
+border: medium none;
+    display: block;
+
+    height: 48px;
+    float: left;
+    outline: none;
+    font-size: 20px;
+    text-indent: 15px;
+}
+
+.btn-search {
+    height: 48px;
+    width: 80px;
+    background: #424242;
+    border-radius: 0;
+    color: #fff;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #1c1c1c;
+}
+
+.btn-search:link, .btn-search:visited {
+    color: #fff;
+}
+
+.btn-search:active, .btn-search:hover {
+    background: #1c1c1c;
+    color: #fff;
+}
+
+.bloque_buscador{
+    position: absolute !important;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}s
