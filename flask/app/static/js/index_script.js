@@ -7,5 +7,5 @@ $(document).ready(function () {
 });
 
 function searchButton(){
-	window.location = "http://127.0.0.1:5000/search?q=https://www.mediavida.com/id/xeven";
+	window.location = "/search?q=https://www.mediavida.com/id/xeven";
 }

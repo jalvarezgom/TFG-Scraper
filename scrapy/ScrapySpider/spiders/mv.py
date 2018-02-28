@@ -6,7 +6,7 @@ from py2neo import Graph,authenticate
 scrap_amigos=True
 nivelbusqueda_profundidad = 1
 #authenticate("localhost:7474", "neo4j", "my_password")
-graph = Graph()
+graph = Graph("http://localhost:7474/db/data/")
 
 class mvSpider(scrapy.Spider):
     name = "mv"

@@ -2,12 +2,15 @@ from app import app
 from flask import render_template, request, session, jsonify
 import requests,json
 
+from py2neo import Graph
+
+graph = Graph("http://localhost:7474/db/data/")
 
 @app.route('/')
 @app.route('/index')
 def index():
-    print('Hello world!')
-    return render_template('index.html')
+    #print('Hello world!')
+	return render_template('index.html')
 
 @app.route('/search')
 def search():
@@ -29,7 +32,9 @@ def search():
 	print(plataforma)
 
 	if json['status']=="ok":
+		session['url']=url
 		session['plataforma'] = plataforma
+		session['usuario'] = url[-1]
 		session['idSearch'] =json['jobid']
 		
 		return render_template('search.html')
@@ -45,13 +50,20 @@ def status():
 	else:
 		return jsonify(status='true')
 
-@app.route('/resultado/<plataforma>/<usuario>')
-def result(plataforma,usuario):
-	print(plataforma + "-" + usuario)
+@app.route('/result')
+def result():
+	print(session['plataforma'] + ' ' + session['usuario'])
+	query = graph.run('MATCH (:Graphmv_item {user:"xeven"})<-[:AMIGOS*1..2]-(am:Graphmv_item) RETURN am.user')
+	#query = graph.run('MATCH (n)-[r]->(m) RETURN n.user,m.user,m.score;')
+	#aux = query.data()
+	for objList in query.data():
+		for k, v in objList.items():
+			print(k + " " +  str (v))
+
+	print('Consulta Cypher -> ' + json.dumps(query.data()))
 	return render_template('result.html')
 
 
 
 
 
-app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
