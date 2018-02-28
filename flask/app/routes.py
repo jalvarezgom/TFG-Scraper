@@ -53,7 +53,7 @@ def status():
 @app.route('/result')
 def result():
 	print(session['plataforma'] + ' ' + session['usuario'])
-	query = graph.run('MATCH (:Graphmv_item {user:"xeven"})<-[:AMIGOS*1..2]-(am:Graphmv_item) RETURN am.user')
+	query = graph.run('MATCH (inicio:Graphmv_item {user:"xeven"})<-[:AMIGOS*1..2]-(fin:Graphmv_item) RETURN inicio.user,fin.user,fin.score')
 	#query = graph.run('MATCH (n)-[r]->(m) RETURN n.user,m.user,m.score;')
 	#aux = query.data()
 	for objList in query.data():
