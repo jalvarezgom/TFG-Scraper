@@ -52,16 +52,26 @@ def status():
 
 @app.route('/result')
 def result():
+	nodes = []
+	links = []
 	print(session['plataforma'] + ' ' + session['usuario'])
-	query = graph.run('MATCH (inicio:Graphmv_item {user:"xeven"})<-[:AMIGOS*1..2]-(fin:Graphmv_item) RETURN inicio.user,fin.user,fin.score')
+
+	cypher = 'MATCH (user {user:"' +session['usuario']+ '"}) RETURN user.user,user.score'
+	query = graph.run(cypher)
+	nodes.append({'user': query.data()[0].get("user.user"),'score':query.data()[0].get("user.score")})
+
+	cypher = 'MATCH (inicio:Graphmv_item {user:"' + session['usuario'] + '"})<-[:AMIGOS*1..2]-(fin:Graphmv_item) RETURN inicio.user,fin.user,fin.score'
+	query = graph.run(cypher)
 	#query = graph.run('MATCH (n)-[r]->(m) RETURN n.user,m.user,m.score;')
 	#aux = query.data()
+	
 	for objList in query.data():
-		for k, v in objList.items():
-			print(k + " " +  str (v))
-
-	print('Consulta Cypher -> ' + json.dumps(query.data()))
-	return render_template('result.html')
+		nodes.append({'user': objList['fin.user'],'score':objList['fin.score']})
+		links.append({'source':objList['inicio.user'],'target':objList['fin.user']})
+		
+	print(nodes)
+	print(links)
+	return render_template('result.html', data={'nodes':nodes,'links':links})
 
 
 

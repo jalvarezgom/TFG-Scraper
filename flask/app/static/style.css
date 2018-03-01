@@ -1,3 +1,4 @@
+/*INDEX_PAGE*/
 .inicio{
     height: 100vh;
     background-image: url("../static/socialmedia1.jpg");
@@ -47,7 +48,7 @@ border: medium none;
     transform: translate(-50%, -50%);
 }
 
-
+/*LOADING_PAGE*/
 .sk-cube-grid {
   width: 120px;
   height: 120px;
@@ -116,3 +117,17 @@ border: medium none;
             transform: scale3D(0, 0, 1);
   } 
 }
+
+/*RESULT_PAGE*/
+.links line {
+  stroke: #999;
+  stroke-opacity: 0.6;
+}
+
+.nodes circle {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+
+
