@@ -57,8 +57,8 @@ def result():
 	print(session['plataforma'] + ' ' + session['usuario'])
 
 	cypher = 'MATCH (user {user:"' +session['usuario']+ '"}) RETURN user.user,user.score'
-	query = graph.run(cypher)
-	nodes.append({'user': query.data()[0].get("user.user"),'score':query.data()[0].get("user.score")})
+	query = graph.data(cypher)
+	nodes.append({'user': query[0].get("user.user"),'score':query[0].get("user.score")})
 
 	cypher = 'MATCH (inicio:Graphmv_item {user:"' + session['usuario'] + '"})<-[:AMIGOS*1..2]-(fin:Graphmv_item) RETURN inicio.user,fin.user,fin.score'
 	query = graph.run(cypher)

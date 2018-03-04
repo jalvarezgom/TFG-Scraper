@@ -129,5 +129,10 @@ border: medium none;
   stroke-width: 1.5px;
 }
 
+svg{
+    width: 900px;
+    height: 600px;
+}
+
 
 
