@@ -19,7 +19,7 @@ def search():
 	url=request.args["q"].split("/")
 	plataforma = url[2].split(".")[1]
 	if(plataforma=="mediavida"):
-		r = requests.post('http://localhost:6800/schedule.json', data = {'project':'ScrapySpider','spider':'mv'})
+		r = requests.post('http://localhost:6800/schedule.json', data = {'project':'ScrapySpider','spider':'mv','user':request.args["q"]})
 		#r = requests.get('http://localhost:6800/listprojects.json')
 	elif(plataforma=="facebook"):
 		r = requests.get('http://httpbin.org/get', params={'user': url[-1]})
@@ -32,7 +32,7 @@ def search():
 	print(plataforma)
 
 	if json['status']=="ok":
-		session['url']=url
+		session['url']=request.args["q"]
 		session['plataforma'] = plataforma
 		session['usuario'] = url[-1]
 		session['idSearch'] =json['jobid']

@@ -16,6 +16,9 @@ class mvSpider(scrapy.Spider):
     start_urls = [
         'https://www.mediavida.com/id/xeven',
     ]
+    def __init__(self, user=None, **kwargs):
+        print("asdasdasd")
+        print(user)
 
     def parse(self, response):
         global scrap_amigos,graph

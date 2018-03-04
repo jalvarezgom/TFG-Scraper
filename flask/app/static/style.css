@@ -129,9 +129,16 @@ border: medium none;
   stroke-width: 1.5px;
 }
 
-svg{
-    width: 900px;
-    height: 600px;
+.svg-container {
+    display: inline-block;
+    width: 100%;
+    vertical-align: top;
+    overflow: hidden;
+}
+.svg-content-responsive {
+    display: inline-block;
+    top: 10px;
+    left: 0;
 }
 
 
