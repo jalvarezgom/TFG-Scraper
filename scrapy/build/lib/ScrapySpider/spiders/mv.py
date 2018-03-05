@@ -4,7 +4,7 @@ from datetime import datetime, date, time, timedelta
 from py2neo import Graph,authenticate
 
 scrap_amigos=True
-nivelbusqueda_profundidad = 1
+nivelbusqueda_profundidad = 0
 #authenticate("localhost:7474", "neo4j", "my_password")
 graph = Graph("http://localhost:7474/db/data/")
 
@@ -56,8 +56,8 @@ class mvSpider(scrapy.Spider):
                     yield request
 
         #usuario.amigos.add("hwki")
-        graph.push(usuario)
-        #yield item
+        #print(usuario)
+        yield {'item':usuario}
 
     def calcular_puntacion(self,noticias,temas,mensajes,firmas,fecha):
         fecha_registro = datetime(int(fecha[5]), int(fecha[3].split("/")[1]), int(fecha[3].split("/")[0]))

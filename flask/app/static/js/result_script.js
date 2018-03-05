@@ -14,9 +14,9 @@ $(document).ready(function () {
 	var color = d3.scaleOrdinal(d3.schemeCategory20);
 
 		var simulation = d3.forceSimulation()
-		    .force("link", d3.forceLink().id(function(d) { return d.user; }).distance(function(d) {return 30;}).strength(0.1))
+		    .force("link", d3.forceLink().id(function(d) { return d.user; }).distance(function(d) {return 80;}).strength(0.1))
 		    .force("charge", d3.forceManyBody())
-		    .force("collide", d3.forceCollide().radius(function(d) { return d.r + 0.5; }).iterations(2))
+		    .force("collide", d3.forceCollide().radius(function(d) { return d.r + 10; }).iterations(4))
 		    .force("center", d3.forceCenter( width / 2,  height / 2));
 
 

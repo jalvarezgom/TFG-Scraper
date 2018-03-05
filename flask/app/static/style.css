@@ -119,10 +119,38 @@ border: medium none;
 }
 
 /*RESULT_PAGE*/
+.contenedor_filter{
+  position:relative;
+}
+
+.filter{
+  position:absolute !important;
+  width: 40% !important;
+  margin-left: 30%;
+  margin-top: 30px;
+}
+
 .links line {
   stroke: #999;
   stroke-opacity: 0.6;
 }
+
+/*
+.container {
+    border: 1px solid #DDDDDD;
+    width: 200px;
+    height: 200px;
+    position:relative;
+}
+.tag {
+    float: left;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    background-color: green;
+    padding-left:30%;
+}
+*/
 
 .nodes circle {
   stroke: #fff;
