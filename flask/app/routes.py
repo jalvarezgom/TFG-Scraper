@@ -61,7 +61,7 @@ def result():
 	#nodes.append({'user': query[0].get("user.user"),'score':query[0].get("user.score")})
 
 	
-	cypher = 'MATCH (inicio:Graphmv_item {user:"' + session['usuario'] + '"})<-[:AMIGOS*1..2]-(fin:Graphmv_item) RETURN inicio.user,fin.user,fin.score'
+	cypher = 'MATCH (userPr:Graphmv_item {user:"' + session['usuario'] + '"})<-[:AMIGOS*0..2]-(inicio:Graphmv_item)<--(fin) RETURN inicio.user,fin.user,fin.score'
 	query = graph.run(cypher)
 	#query = graph.run('MATCH (n)-[r]->(m) RETURN n.user,m.user,m.score;')
 	#aux = query.data()
@@ -70,7 +70,7 @@ def result():
 		nodes.append({'user': objList['fin.user'],'score':objList['fin.score']})
 		links.append({'source':objList['inicio.user'],'target':objList['fin.user']})
 	
-	cypher = 'MATCH (inicio:Graphmv_item {user:"' + session['usuario'] + '"})<-[rel:AMIGOS*1..2]-(fin:Graphmv_item) RETURN rel'
+	#cypher = 'MATCH (inicio:Graphmv_item {user:"' + session['usuario'] + '"})<-[rel:AMIGOS*1..2]-(fin:Graphmv_item) RETURN rel'
 	query = graph.run(cypher)
 	print (query.data())
 	#print(nodes)
