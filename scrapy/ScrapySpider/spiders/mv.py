@@ -17,7 +17,7 @@ class mvSpider(scrapy.Spider):
         'https://www.mediavida.com/id/xeven',
     ]
     def __init__(self, user=None, **kwargs):
-        print("asdasdasd")
+        print("Mediavida")
         print(user)
 
     def parse(self, response):
