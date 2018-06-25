@@ -4,7 +4,7 @@ from datetime import datetime, date, time, timedelta
 from py2neo import Graph,authenticate
 
 scrap_amigos=True
-nivelbusqueda_profundidad = 0
+nivelbusqueda_profundidad = 2
 #authenticate("localhost:7474", "neo4j", "my_password")
 graph = Graph("http://localhost:7474/db/data/")
 
@@ -68,6 +68,7 @@ class mvSpider(scrapy.Spider):
     def tratar_usuario (self,usuario,response):
         usuario.user = response.css("div.user-info h1::text").extract_first()  # Extraemos el usuario
         usuario.url = response.url
+        usuario.plataforma = "mv"
 
         valores = []
         for dato in response.css("div.hero-menu ul li"):

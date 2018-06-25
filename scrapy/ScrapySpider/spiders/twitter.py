@@ -74,6 +74,7 @@ class twSpider(scrapy.Spider):
 		usuario.user = response.xpath("//div[@class='ProfileHeaderCard']//h2//a//span//b/text()").extract_first()
 		usuario.url = response.url
 		usuario.score = response.xpath("//li[@class='ProfileNav-item ProfileNav-item--followers']//a//span[@class='ProfileNav-value']/text()").extract_first()
+		usuario.plataforma = "tw"
 
 		#Listado de seguidos
 		listFollowing = self.parseFollowing(response,usuario,nivelbusqueda_profundidad,response.url+"/following")
@@ -91,6 +92,7 @@ class twSpider(scrapy.Spider):
 		usuario.url = response.url
 		usuario.score = response.xpath("//li[@class='ProfileNav-item ProfileNav-item--followers']//a//span[@class='ProfileNav-value']/text()").extract_first()
 		usuario.amigos.add(response.meta['item'])
+		usuario.plataforma = "tw"
 
 		try:
 			if(response.meta['profundidad']>0):

@@ -13,5 +13,6 @@ class Graphmv_item(GraphObject):
     user = Property()
     url = Property()
     score = Property()
+    plataforma = Property()
     amigos = RelatedTo("Graphmv_item")
 

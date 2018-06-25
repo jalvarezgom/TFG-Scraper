@@ -9,7 +9,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-parsearAptitudes = 0
 nivelbusqueda_profundidad = 1
 #authenticate("localhost:7474", "neo4j", "my_password")
 
@@ -17,6 +16,7 @@ class lkSpider(scrapy.Spider):
 	name = "lk"
 	login_page="https://www.linkedin.com/m/login/"
 	target_page="https://www.linkedin.com/in/jaime-alvarez-gomez-a4000a153/"
+	target_page2 = "https://www.linkedin.com/in/santiago-rodriguez-ortego/"
 	header = {
 	    "accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
 	    "accept-encoding" : "gzip, deflate, sdch, br",
@@ -25,6 +25,7 @@ class lkSpider(scrapy.Spider):
 	}
 	handle_httpstatus_list = [999]
 	driver = None
+	cookies = None
 
 	def __init__(self, url=None, **kwargs):
 		print("---Linkedin---")
@@ -35,7 +36,8 @@ class lkSpider(scrapy.Spider):
 		self.driver.get(cons.urlLoginLK)
 		self.load_cookie(self.driver,cons.cookiesLK)
 		self.driver.get(cons.urlLK)
-		return 	[scrapy.Request(url=self.driver.current_url, headers=self.header, callback=self.login)]
+		return 	[scrapy.Request(url=self.target_page2, callback=self.parseContact ,headers=self.header,cookies=self.driver.get_cookies())]
+		#return 	[scrapy.Request(url=self.driver.current_url, headers=self.header, callback=self.login)]
 
 	def login(self,response):
 		print("---Login---")
@@ -43,7 +45,10 @@ class lkSpider(scrapy.Spider):
 		if(self.driver.current_url == cons.urlLK):
 			print("Cookies Validas")
 			#return 	[scrapy.Request(url=self.target_page, callback=self.parse, headers = self.headers)]
-			return 	[scrapy.Request(url=self.target_page, callback=self.parse ,headers=self.header,cookies=self.driver.get_cookies())]
+			if (self.target_page == cons.urlPerfilUsuario):
+				return 	[scrapy.Request(url=self.target_page, callback=self.parse ,headers=self.header,cookies=self.driver.get_cookies())]
+			else:
+				return 	[scrapy.Request(url=self.target_page, callback=self.parseContact ,headers=self.header,cookies=self.driver.get_cookies())]
 		else:
 			#Cookies caducadas
 			print("Cookies Invalidas")
@@ -62,44 +67,84 @@ class lkSpider(scrapy.Spider):
 			print("ERROR GENERANDO COOKIESLK LOGIN")
 		else:
 			self.save_cookie(self.driver,cons.cookiesLK)
-			return 	[scrapy.Request(url=self.target_page, callback=self.parse ,headers=self.header,cookies=self.driver.get_cookies())]
+			return 	[scrapy.Request(url=cons.urlLK, callback=self.login ,headers=self.header,cookies=self.driver.get_cookies())]
 
 	def parse(self, response):
 		print("--Inicio Parse()--")
 		global nivelbusqueda_profundidad
 		usuario = Graphmv_item()
-		print("pruebaaaa")
-		print(response.body)
+
 		#Perfil de inicio
 		self.driver.get(self.target_page)
 		usuario.user = self.driver.find_element_by_xpath("//div[@class='pv-top-card-v2-section__info mr5']//div//h1").text
 		usuario.url = self.driver.current_url
 		usuario.score = 0
+		usuario.plataforma = "lk"
 
 		#Listado de seguidos
-		listContacts = self.parseContacts(usuario, nivelbusqueda_profundidad)
+		listContacts = self.parseContactList(usuario, nivelbusqueda_profundidad)
 		for contact in listContacts:
 			yield contact
 
 		yield {'item':usuario}
 		
-	def parseContact(self,reponse):
+	def parseContact(self,response):
 		print("--Inicio Parse()--")
 		usuario = Graphmv_item()
-		logging.info(response.meta['profundidad'])
+
 		#Perfil de inicio
 		self.driver.get(response.url)
 		usuario.user = self.driver.find_element_by_xpath("//div[@class='pv-top-card-v2-section__info mr5']//div//h1").text
 		usuario.url = self.driver.current_url
 		usuario.score = 0
+		usuario.plataforma = "lk"
+
+		#Listado de competencias
+		try:
+			profundidad = response.meta['profundidad']
+			usuario.amigos.add(response.meta['item'])
+			if (profundidad > 0):
+				listContacts = self.parseCompetenciaList(usuario,profundidad-1)
+				for contact in listContacts:
+					yield contact
+		except:
+			global nivelbusqueda_profundidad
+			listContacts = self.parseCompetenciaList(usuario,nivelbusqueda_profundidad)
+			for contact in listContacts:
+				yield contact
 
 
-		return 0
+		yield {'item':usuario}
 
-	def parseCompetencia(self,response):
-		return 0
+	def parseCompetenciaList(self,usuario,profundidad):
+		listRequest = []
+		numElemValListCompetencia = 20
 
-	def parseContacts(self,usuario,profundidad):
+		#Scroll de la pagina web
+		for x in range (3):
+			self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+			time.sleep(1)
+		self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight/2);")
+		time.sleep(3)
+		
+		listElementShortCompetencia = self.driver.find_elements_by_xpath("//section//ol[@class='pv-skill-categories-section__top-skills pv-profile-section__section-info section-info pb4']//li//div[@class='pv-skill-category-entity__skill-wrapper tooltip-container']//a//span[2]")
+		for elem in listElementShortCompetencia:
+			elem.click()
+			time.sleep(1)
+
+			listContact = self.driver.find_elements_by_xpath("//ul[@class='pv-endorsers__list list-style-none']//li//a")
+			for cont in listContact:
+				url = cont.get_attribute("href")
+				request = scrapy.Request(url, callback=self.parseContact ,headers=self.header,cookies=self.driver.get_cookies())
+				request.meta['item'] = usuario
+				request.meta['profundidad'] = profundidad-1
+				listRequest.append(request)
+
+			self.driver.execute_script("document.getElementsByClassName('artdeco-dismiss')[0].click()")
+
+		return listRequest
+
+	def parseContactList(self,usuario,profundidad):
 		self.driver.get(cons.urlContactsLK)
 		numContacts = self.driver.find_element_by_xpath("//section//header[@class='mn-connections__header']//h2").text.split()[0]
 		numElemScroll = 40

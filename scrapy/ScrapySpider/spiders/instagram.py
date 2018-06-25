@@ -66,6 +66,8 @@ class igSpider(scrapy.Spider):
 		self.driver.get(self.target_page)
 		usuario.user = self.driver.find_element_by_xpath("//div[@class='nZSzR']//h1").text
 		usuario.url = self.driver.current_url
+		usuario.plataforma = "ig"
+
 		#Listado de seguidos
 		try:
 			usuario.score = self.driver.find_element_by_xpath("//li//a[@class='-nal3 ']//span").text			
@@ -87,6 +89,7 @@ class igSpider(scrapy.Spider):
 		usuario.user = self.driver.find_element_by_xpath("//div[@class='nZSzR']//h1").text
 		usuario.url = self.driver.current_url
 		usuario.amigos.add(response.meta['item'])
+		usuario.plataforma = "ig"
 
 		#Listado de seguidos
 		try:
