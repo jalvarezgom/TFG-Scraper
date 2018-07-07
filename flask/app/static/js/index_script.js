@@ -1,11 +1,12 @@
 $(document).ready(function () {
     $(".buscador").on('keyup', function (e) {
         if (e.keyCode == 13) {
-            window.location = "https://www.example.com";
+        	searchButton()
         }
     });
 });
 
 function searchButton(){
-	window.location = "/search?q=https://www.mediavida.com/id/xeven";
+	url = $("#buscador_input").val(); 
+	window.location = "/search?q="+url;
 }

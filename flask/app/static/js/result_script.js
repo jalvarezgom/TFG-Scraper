@@ -1,3 +1,15 @@
+$(function() {
+    $('button').click(function() {
+    	//url = $("#buscador_input").val(); 
+    	usuario = $("#input_usuario").val(); 
+    	nivel = $("#input_nivel").val(); 
+    	puntuacion = $("#input_puntuacion").val(); 
+    	//alert(usuario +nivel+puntuacion);
+    	window.location = "/query?usuario="+usuario+"&nivel="+nivel+"&puntuacion="+puntuacion;
+
+    });
+});
+
 $(document).ready(function () {
 	var width =$(window).width()*1;
 	var height =$(window).height()*1;

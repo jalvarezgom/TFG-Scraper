@@ -18,8 +18,26 @@
 </head>
 <body>
     <div class="contenedor_filter">
-        <div class="filter input-group mb-3">
-            <input type="text" class="form-control" placeholder="Consulta Cypher" aria-label="Consulta Cypher" aria-describedby="basic-addon2">
+        <div class="filter input-group ">
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Usuario</span>
+              </div>
+              <input type="text" id="input_usuario" class="form-control" placeholder="Usuario" aria-label="Usuario" aria-describedby="basic-addon1">
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Nivel profundidad</span>
+              </div>
+              <input type="text" id="input_nivel" class="form-control" placeholder="2" aria-label="2" aria-describedby="basic-addon1">
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Min. puntuación</span>
+              </div>
+              <input type="text" id="input_puntuacion" class="form-control" placeholder="0" aria-label="0" aria-describedby="basic-addon1">
+            </div>
+            <button type="button" class="btn btn-export btn-outline-secondary">Exportar</button>
         </div>
         <div id="chartId"></div>    
     </div>

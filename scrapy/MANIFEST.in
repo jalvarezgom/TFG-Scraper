@@ -1,0 +1,4 @@
+include MANIFEST.in
+include ScrapySpider/spiders/cookies/ig
+include ScrapySpider/spiders/cookies/lk
+include ScrapySpider/spiders/cookies/tw

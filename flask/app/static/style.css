@@ -128,9 +128,25 @@ body {
 
 .filter{
   position:absolute !important;
-  width: 40% !important;
-  margin-left: 30%;
+  width: 50% !important;
+  margin-left: 25%;
   margin-top: 30px;
+  padding: 1rem 1rem 0rem 1rem;
+  background-color: white;
+  border: 2px solid #D8D3D3;
+  border-radius: 25px;
+}
+
+.mb-3{
+  width: 25% !important;
+  margin-left: 5px;
+  margin-bottom: 0px !important
+}
+
+.btn-export{
+  width: 15%;
+  margin-left: 8% ;
+  margin-bottom: 1rem!important;
 }
 
 .links line {
