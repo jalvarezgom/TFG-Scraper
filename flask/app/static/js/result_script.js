@@ -1,6 +1,6 @@
 $(document).ready(function () {
-	var width =$(window).width()*0.8;
-	var height =$(window).height()*0.8;
+	var width =$(window).width()*1;
+	var height =$(window).height()*1;
 	var svg = d3.select("div#chartId")
 			   .append("div")
 			   .classed("svg-container", true) //container class to make it responsive
@@ -14,9 +14,9 @@ $(document).ready(function () {
 	var color = d3.scaleOrdinal(d3.schemeCategory20);
 
 		var simulation = d3.forceSimulation()
-		    .force("link", d3.forceLink().id(function(d) { return d.user; }).distance(function(d) {return 80;}).strength(0.1))
+		    .force("link", d3.forceLink().id(function(d) { return d.user; }).distance(function(d) {return 100;}).strength(0.1))
 		    .force("charge", d3.forceManyBody())
-		    .force("collide", d3.forceCollide().radius(function(d) { return d.r + 10; }).iterations(4))
+		    .force("collide", d3.forceCollide().radius(function(d) { return d.r + 10; }).iterations(10))
 		    .force("center", d3.forceCenter( width / 2,  height / 2));
 
 
@@ -31,7 +31,7 @@ $(document).ready(function () {
 			.selectAll("circle")
 			.data(graph.nodes)
 			.enter().append("circle")
-				.attr("r", function(d){return Math.max(5, d.score/1000);})
+				.attr("r", function(d){return Math.min(Math.max(5, d.score/1000), 40);})
 				.attr("fill", function(d) { return color(4); })
 				.call(d3.drag()
 					.on("start", dragstarted)

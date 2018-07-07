@@ -7,12 +7,12 @@ class mv_item(Item):
     score = Field ()
     amigos = Field (defaul=[])
 
-class Graphmv_item(GraphObject):
+class GraphItem(GraphObject):
     __primarykey__ = "user"
 
     user = Property()
     url = Property()
     score = Property()
     plataforma = Property()
-    amigos = RelatedTo("Graphmv_item")
+    relation = RelatedTo("GraphItem")
 

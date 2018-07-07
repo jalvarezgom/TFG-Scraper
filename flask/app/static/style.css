@@ -49,6 +49,9 @@ border: medium none;
 }
 
 /*LOADING_PAGE*/
+body {
+    background-color: #f9f6e5 !important;
+}
 .sk-cube-grid {
   width: 120px;
   height: 120px;
@@ -162,6 +165,7 @@ border: medium none;
     width: 100%;
     vertical-align: top;
     overflow: hidden;
+    background-color: #f9f6e5;
 }
 .svg-content-responsive {
     display: inline-block;
