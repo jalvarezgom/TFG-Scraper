@@ -123,11 +123,12 @@ body {
 
 /*RESULT_PAGE*/
 .contenedor_filter{
-  position:relative;
+  width: 200%;
+  height: 200%;
 }
 
 .filter{
-  position:absolute !important;
+  position:fixed !important;
   width: 50% !important;
   margin-left: 25%;
   margin-top: 30px;

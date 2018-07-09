@@ -58,49 +58,101 @@ def result():
 	links = []
 	conjunto = set()
 	print(session['plataforma'] + ' ' + session['usuario'])
+	session['url'] = "https://twitter.com/Rumiin_GG"
+
+	cypher = 'MATCH (userPr:GraphItem {url:"'+session['url']+'"})<-[:RELATION*0..2]-(inicio:GraphItem) RETURN toInteger(avg(toInteger(inicio.score))), count(inicio)'
+	query = graph.run(cypher)
+	dataMedia = query.data()
+	print(dataMedia)
+	print(dataMedia[0].get('toInteger(avg(toInteger(inicio.score)))'))
+	print(dataMedia[0].get('count(inicio)'))
+	media = dataMedia[0].get('toInteger(avg(toInteger(inicio.score)))')
+	numTotal = dataMedia[0].get('count(inicio)')
+	#Tratar resultado
+	#1.MATCH (userPr:GraphItem {url:"'+session['url']+'"})<--(inicio:GraphItem) WHERE toInteger(inicio.score)>'+MEDIA+' RETURN userPr.user,userPr.score,inicio.user,inicio.score
+	#2.MATCH (userPr:GraphItem {url:"'+session['url']+'"})<-[:RELATION*0..2]-(inicio:GraphItem)<--(fin:GraphItem) WHERE toInteger(inicio.score)>'+MEDIA+' AND toInteger(fin.score)>'+MEDIA+' RETURN inicio.user,fin.user,fin.score
 
 	#1. MATCH (userPr:Graphmv_item {user:"Rumiin_GG"})<--(inicio:Graphmv_item) RETURN userPr.user,userPr.score,inicio.user,inicio.score
 	#2. MATCH (userPr:Graphmv_item {user:"Rumiin_GG"})<-[:AMIGOS*0..2]-(inicio:Graphmv_item)<--(fin) RETURN inicio.user,fin.user.fin.score
-	print("caso1")
-	cypher = 'MATCH (userPr {url:"'+session['url']+'"})<--(inicio) RETURN userPr.user,userPr.score,inicio.user,inicio.score'
-	query = graph.run(cypher)
-	data = query.data()
+	
+	if(numTotal < 250):
+		print("caso1")
+		cypher = 'MATCH (userPr:GraphItem {url:"'+session['url']+'"})<--(inicio:GraphItem) RETURN userPr.user,userPr.score,inicio.user,inicio.score'
+		query = graph.run(cypher)
+		data1 = query.data()
+		#print(data1)		
 
-	nodes.append({'user': data[0].get('userPr.user'),'score':data[0].get('userPr.score')})
-	conjunto.add(data[0].get('userPr.user'))
-	for elem in data:
+		print("caso2")
+		cypher = 'MATCH (userPr:GraphItem {url:"'+session['url']+'"})<-[:RELATION*0..2]-(inicio:GraphItem)<--(fin:GraphItem) RETURN inicio.user,fin.user,fin.score'
+		query = graph.run(cypher)
+		data2 = query.data()
+	else:
+		#Filtrar resultado
+		condicion = False
+		mediaDiezPorciento = media*0.1
+		opAum = False
+		opDism = False
+		while(not condicion):
+			print("caso1")
+			cypher = 'MATCH (userPr:GraphItem {url:"'+session['url']+'"})<--(inicio:GraphItem)  WHERE toInteger(inicio.score)>'+str(media)+' RETURN userPr.user,userPr.score,inicio.user,inicio.score'
+			query = graph.run(cypher)
+			data1 = query.data()
+
+			print("caso2")
+			cypher = 'MATCH (userPr:GraphItem {url:"'+session['url']+'"})<-[:RELATION*0..2]-(inicio:GraphItem)<--(fin:GraphItem) WHERE toInteger(inicio.score)>'+str(media)+' AND toInteger(fin.score)>'+str(media)+' RETURN inicio.user,fin.user,fin.score'
+			query = graph.run(cypher)
+			data2 = query.data()
+
+			if ((len(data1)+len(data2)) >250 ):
+				#Aumento la media
+				if(opDism):
+					media = media +mediaDiezPorciento/2
+				else:
+					media = media +mediaDiezPorciento
+				opAum=True
+			elif ((len(data1)+len(data2)) <200 and not opAum):
+				#Disminuyo la media
+				media = media - mediaDiezPorciento
+				opDism=True
+			else:
+				condicion = True
+
+			#print(len(data1))
+			#print(len(data2))
+
+	nodes.append({'user': data1[0].get('userPr.user'),'score':data1[0].get('userPr.score')})
+	conjunto.add(data1[0].get('userPr.user'))
+	for elem in data1:
 		if (elem['inicio.user'] not in conjunto):
 			nodes.append({'user': elem['inicio.user'],'score':elem['inicio.score']})
 			conjunto.add(elem['inicio.user'])
 		links.append({'source':elem['userPr.user'],'target':elem['inicio.user']})
-		
-
-	print("caso2")
-	cypher = 'MATCH (userPr:GraphItem {url:"'+session['url']+'"})<-[:AMIGOS*0..2]-(inicio:GraphItem)<--(fin:GraphItem) RETURN inicio.user,fin.user,fin.score'
-	query = graph.run(cypher)
-	for elem in query.data():
+	#print(data)
+	for elem in data2:
 		if (elem['fin.user'] not in conjunto):
 			nodes.append({'user': elem['fin.user'],'score':elem['fin.score']})
 			conjunto.add(elem['fin.user'])
 		links.append({'source':elem['inicio.user'],'target':elem['fin.user']})
 	
 	session['listNodes'] =list(conjunto)
-	return render_template('result.html', data={'nodes':nodes,'links':links})
+	return render_template('result.html', data={'nodes':nodes,'links':links,'media':media})
 
 @app.route('/query')
 def query():
 	usuario = request.args["usuario"]
 	nivel = request.args["nivel"]
 	puntuacion = request.args["puntuacion"]
+	data=""
 	usuario = "xeven"
 	nivel = "2"
 	puntuacion = "4400"
-	aux = '1,2,3\n4,5,6\n'
-
-	cypher = 'MATCH (userPr:GraphItem {user:"'+usuario+'",plataforma:"'+"mv"+'"})<-[:RELATION*0..'+nivel+']-(n:GraphItem) WHERE toInteger(n.score)>'+puntuacion+' RETURN n'
-	query = graph.run(cypher)
-	data = json.dumps(query.data())
-	print(data)
+	if (usuario in session['listNodes']):
+		cypher = 'MATCH (userPr:GraphItem {user:"'+usuario+'",plataforma:"'+"mv"+'"})<-[:RELATION*0..'+nivel+']-(n:GraphItem) WHERE toInteger(n.score)>'+puntuacion+' RETURN n'
+		query = graph.run(cypher)
+		data = json.dumps(query.data())
+		print(data)
+	else:
+		data = "Usuario introducido no encontrado en la consulta inicial"
 	response = app.response_class(
 		response=data,
 		status=200,
