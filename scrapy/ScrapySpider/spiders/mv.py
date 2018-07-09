@@ -1,5 +1,5 @@
 import scrapy
-from ScrapySpider.mv_item import mv_item,Graphmv_item
+from ScrapySpider.mv_item import GraphItem
 from datetime import datetime, date, time, timedelta
 from py2neo import Graph,authenticate
 
@@ -23,7 +23,7 @@ class mvSpider(scrapy.Spider):
     def parse(self, response):
         global scrap_amigos,graph
         #item = mv_item() #Creamos item
-        usuario = Graphmv_item()
+        usuario = GraphItem()
         principal = True
         if 'item' in response.meta:
             principal = False
@@ -46,7 +46,7 @@ class mvSpider(scrapy.Spider):
                 yield request
         else:
             profundidad= response.meta['profundidad']
-            usuario.amigos.add(response.meta['item'])
+            usuario.relation.add(response.meta['item'])
             if profundidad > 0:
                 for amigo in panelamigos.css("ul.avatar-list li a::attr(href)").extract():
                     # yield response.follow("https://www.mediavida.com"+ amigo, callback=self.parse)
@@ -55,8 +55,6 @@ class mvSpider(scrapy.Spider):
                     request.meta['profundidad'] = profundidad-1
                     yield request
 
-        #usuario.amigos.add("hwki")
-        #print(usuario)
         yield {'item':usuario}
 
     def calcular_puntacion(self,noticias,temas,mensajes,firmas,fecha):
@@ -76,5 +74,4 @@ class mvSpider(scrapy.Spider):
         # print(valores)
         fr_fecha = response.css("div.c-side ul.user-meta li span::attr(title)").extract_first().split(" ")
 
-        # item['score'] = self.calcular_puntacion(valores[0],valores[1],valores[2],valores[3],fr_fecha)
         usuario.score = self.calcular_puntacion(valores[0], valores[1], valores[2], valores[3], fr_fecha)

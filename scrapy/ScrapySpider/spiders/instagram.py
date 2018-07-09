@@ -1,7 +1,9 @@
-import scrapy,pickle,time,logging,json
+import scrapy,pickle,time,logging
 import ScrapySpider.constantes as cons
-from ScrapySpider.mv_item import mv_item,Graphmv_item
-from py2neo import Graph,authenticate
+from ScrapySpider.mv_item import GraphItem
+from py2neo import Graph
+#from pkg_resources import resource_string,resource_stream,resource_listdir
+from pathlib import Path
 
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
@@ -9,41 +11,57 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
 
-nivelbusqueda_profundidad = 2
-#authenticate("localhost:7474", "neo4j", "my_password")
+nivelbusqueda_profundidad = 1
 
 class igSpider(scrapy.Spider):
 	name = "ig"
-	#login_page="https://www.instagram.com/accounts/login/"
-	target_page="https://www.instagram.com/fcklipez/"
+	target_page=None
 	driver = None
+	logger = None
 
 	def __init__(self, url=None, **kwargs):
-		print("---Instagram---")
-		self.driver = webdriver.Firefox()
 		#Inicializar target_page con la url objetivo
+		self.setLoggersLevel()
+		self.logger.info("[SPIDER] - Red Social Instagram")
+		self.target_page="https://www.instagram.com/fcklipez/"
+		options = Options()
+		#options.set_headless(headless=True)
+		self.driver = webdriver.Firefox(firefox_options=options)
 
+	def closed(self, reason):
+		self.driver.quit()
+		self.logger.info("[SPIDER] - Cerrar navegador")
+		self.logger.info("[SPIDER] - Tarea del Spider finalizada")
 
 	def start_requests(self):
 		#Preparamos las cookies de login
 		self.driver.get(cons.urlLoginIG)
-		self.load_cookie(self.driver,cons.cookiesIG)
+		cookies = Path(cons.cookiesLK)
+		if not cookies.is_file():
+			self.loginCookies()
+		try:
+			self.load_cookie(self.driver,cons.cookiesIG)
+		except:
+			self.logger.warning("[SPIDER] WARNING - Error en carga de cookies")
+			pass
 		self.driver.refresh()
 		return 	[scrapy.Request(url=self.driver.current_url, callback=self.login)]
 		
 	def login(self,response):
-		print("---Login IG---")
+		self.logger.info("[SPIDER] - Login IG")
 		if(self.driver.current_url == "https://www.instagram.com/"):
 			#Spider logeado
 			return 	[scrapy.Request(url=self.target_page, callback=self.parse)]
 		else:
 			#Cookies caducadas
-			print('Cookies Invalidas')
+			self.logger.warning('[SPIDER] - Cookies Invalidas')
 			self.loginCookies()
 
 	def loginCookies(self):
-		print("--Generacion CookiesIG--")
+		self.logger.info("[SPIDER] - Generacion cookiesIG")
+		time.sleep(1)
 		username = self.driver.find_element_by_xpath("//input[@name='username']")
 		password = self.driver.find_element_by_xpath("//input[@name='password']")
 		username.send_keys(cons.userIG)
@@ -52,15 +70,19 @@ class igSpider(scrapy.Spider):
 		time.sleep(1) #Tiempo necesario para que procese el 'login'
 		self.driver.get(cons.urlLoginIG)
 		if(self.driver.current_url == "https://www.instagram.com/"):
-			self.save_cookie(self.driver,cons.cookiesIG)
-			#return 	[scrapy.Request(url=self.target_page, callback=self.parse)]
+			try:
+				self.save_cookie(self.driver,cons.cookiesIG)
+			except:
+				self.logger.warning("[SPIDER] WARNING - Error en guardado de cookies")
+				pass
+			return 	[scrapy.Request(url=self.target_page, callback=self.parse)]
 		else:
-			print("ERROR GENERANDO COOKIESIG LOGIN")
+			self.logger.several("[SPIDER] SEVERAL - ERROR GENERANDO COOKIESIG LOGIN")
 
 	def parse(self, response):
-		print('Parsear Usuario principal')
+		self.logger.info('[SPIDER] - Parseando usuario objetivo: '+response.url)
 		global nivelbusqueda_profundidad
-		usuario = Graphmv_item()
+		usuario = GraphItem()
 
 		#Perfil de inicio
 		self.driver.get(self.target_page)
@@ -76,19 +98,20 @@ class igSpider(scrapy.Spider):
 				yield followingRequest
 		except NoSuchElementException:
 			usuario.score = self.driver.find_element_by_xpath("//li//span[@class='-nal3 ']").text
+			pass
 
 		yield {'item':usuario}
 
 		
 	def parseFriend(self,response):
-		print('Parsear Usuario Amigo')
-		usuario = Graphmv_item()
+		self.logger.info('[SPIDER] - Parseando usuario relacionado '+response.url)
+		usuario = GraphItem()
 
 		#Perfil de inicio
 		self.driver.get(response.url)
 		usuario.user = self.driver.find_element_by_xpath("//div[@class='nZSzR']//h1").text
 		usuario.url = self.driver.current_url
-		usuario.amigos.add(response.meta['item'])
+		usuario.relation.add(response.meta['item'])
 		usuario.plataforma = "ig"
 
 		#Listado de seguidos
@@ -96,35 +119,31 @@ class igSpider(scrapy.Spider):
 			usuario.score = self.driver.find_element_by_xpath("//li//a[@class='-nal3 ']//span").text			
 			if(response.meta['profundidad'] > 0):
 				listFollower = self.parseFollowing(usuario,response.meta['profundidad'])
-				#logging.info(listFollower)
 				for followerRequest in listFollower:
 					yield followerRequest
 		except NoSuchElementException:
 			usuario.score = self.driver.find_element_by_xpath("//li//span[@class='-nal3 ']").text
-
-		
+			pass
 
 		yield {'item':usuario}
 
 	def parseFollowing(self,usuario,profundidad):
 		listRequest = []
 		numSeguidores = self.driver.find_element_by_xpath("//li[@class='Y8-fY '][3]//a//span").text
-		logging.info(int(numSeguidores)/12)
 
 		self.driver.find_element_by_partial_link_text("seguidos").click()
 		time.sleep(1)
 		dialog = self.driver.find_element_by_xpath("//div[@class='j6cq2']")
 		for x in range( int(int(numSeguidores)/12)+1):
 			self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", dialog)
-			time.sleep(1)
+			time.sleep(0.5)
 
 		friendsLinks = self.driver.find_elements_by_xpath("//li//div//div//a")
 		for friend in friendsLinks:
 			request = scrapy.Request(friend.get_attribute("href"), callback=self.parseFriend)
 			request.meta['item'] = usuario
 			request.meta['profundidad'] = profundidad-1
-			logging.info(friend.get_attribute("href"))
-			#yield request
+			#self.logger.info(friend.get_attribute("href"))
 			listRequest.append(request)
 
 		return listRequest
@@ -137,7 +156,7 @@ class igSpider(scrapy.Spider):
 		return 0
 
 	def save_cookie(self,driver, path):
-		with open(path, 'wb') as filehandler:
+		with open(path, 'wb+') as filehandler:
 			pickle.dump(driver.get_cookies(), filehandler)
 
 	def load_cookie(self,driver, path):
@@ -145,3 +164,10 @@ class igSpider(scrapy.Spider):
 			cookies = pickle.load(cookiesfile)
 			for cookie in cookies:
 				driver.add_cookie(cookie)
+
+	def setLoggersLevel (self):
+		self.logger=logging.getLogger('igSpider')
+		self.logger.setLevel(logging.INFO)
+		logging.getLogger("scrapy").setLevel(logging.INFO)
+		logging.getLogger("neo4j").setLevel(logging.WARNING)
+		logging.getLogger("selenium").setLevel(logging.INFO)
