@@ -35,7 +35,8 @@ class twSpider(scrapy.Spider):
 		#Inicializar target_page con la url objetivo
 		self.setLoggersLevel()
 		self.logger.info("[SPIDER] - Red Social Twitter")
-		self.target_page = "https://twitter.com/Rumiin_GG"
+		self.target_page = "https://twitter.com/PeterDracon70"
+		self.logger.info("[SPIDER] - Objetivo: "+self.target_page)
 		options = Options()
 		#options.set_headless(headless=True)
 		self.driver = webdriver.Firefox(firefox_options=options)
@@ -157,9 +158,8 @@ class twSpider(scrapy.Spider):
 		for x in range(int(numElemsScroll)):
 			self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 			time.sleep(0.5)
-
 		try:
-			for x in range((int(numElemsScroll))*3):
+			for x in range((int(numElemsScroll)+1)*3):
 				self.logger.debug("[SPIDER] - Extrayendo información de Div - "+str(x+1))
 				for y in range(6):
 					followingLink = self.driver.find_element_by_xpath("//div[@class='GridTimeline-items has-items']//div[@class='Grid Grid--withGutter']["+str(x+1)+"]//div[@class='Grid-cell u-size1of2 u-lg-size1of3 u-mb10']["+str(y+1)+"]//div//div//a")
@@ -169,7 +169,7 @@ class twSpider(scrapy.Spider):
 					listRequest.append(request)
 		except:
 			self.logger.warning("[SPIDER] WARNING - Error controlado parseando 'parseFollowing'")
-			pass
+			
 
 		return listRequest
 
@@ -196,4 +196,5 @@ class twSpider(scrapy.Spider):
 		logging.getLogger("scrapy").setLevel(logging.INFO)
 		logging.getLogger("neo4j").setLevel(logging.WARNING)
 		logging.getLogger("selenium").setLevel(logging.INFO)
+		
 		

@@ -101,7 +101,8 @@ class lkSpider(scrapy.Spider):
 		self.driver.get(self.target_page)
 		usuario.user = self.driver.find_element_by_xpath("//div[@class='pv-top-card-v2-section__info mr5']//div//h1").text
 		usuario.url = self.driver.current_url
-		usuario.score = 0
+		usuario.score = self.driver.find_element_by_xpath("//span[@class='pv-top-card-v2-section__entity-name pv-top-card-v2-section__connections ml2 Sans-15px-black-85%-semibold']").text
+		self.logger.info(usuario.score)
 		usuario.plataforma = "lk"
 
 		#Listado de seguidos
@@ -118,8 +119,13 @@ class lkSpider(scrapy.Spider):
 		#Perfil de inicio
 		self.driver.get(response.url)
 		usuario.user = self.driver.find_element_by_xpath("//div[@class='pv-top-card-v2-section__info mr5']//div//h1").text
-		usuario.url = self.driver.current_url
-		usuario.score = 0
+		usuario.url = self.driver.current_url                       
+		rawScore = self.driver.find_element_by_xpath("//div[@class='pv-top-card-v2-section__link pv-top-card-v2-section__link--connections']//span[2]").text
+		if(self.isInt(rawScore.split()[0])):
+			usuario.score = rawScore.split()[0]
+		else:
+			usuario.score = "999"
+		self.logger.info(usuario.score)
 		usuario.plataforma = "lk"
 
 		#Listado de competencias
@@ -147,9 +153,9 @@ class lkSpider(scrapy.Spider):
 		#Scroll de la pagina web
 		for x in range (3):
 			self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-			time.sleep(0.5)
+			time.sleep(1)
 		self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight/2);")
-		time.sleep(0.5)
+		time.sleep(2)
 		
 		listElementShortCompetencia = self.driver.find_elements_by_xpath("//section//ol[@class='pv-skill-categories-section__top-skills pv-profile-section__section-info section-info pb4']//li//div[@class='pv-skill-category-entity__skill-wrapper tooltip-container']//a//span[2]")
 		for elem in listElementShortCompetencia:
@@ -167,12 +173,24 @@ class lkSpider(scrapy.Spider):
 			self.driver.execute_script("document.getElementsByClassName('artdeco-dismiss')[0].click()")
 
 		self.driver.find_element_by_xpath("//button[@class='pv-profile-section__card-action-bar pv-skills-section__additional-skills artdeco-container-card-action-bar']").click()
+
+		listElementLongCompetencia = self.driver.find_elements_by_xpath("//div[@class='pv-skill-categories-section__expanded']//div//ol//li//div//a//span[2]")
 		time.sleep(1)
-		listElementLongCompetencia = self.driver.find_elements_by_xpath("//div[@class='skill-categories-expanded']//div//ol//li//div")
+		self.logger.info(len(listElementLongCompetencia))
 		for elem in listElementLongCompetencia:
 			elem.click()
 			time.sleep(1)
-		time.sleep(5)
+
+			listContact = self.driver.find_elements_by_xpath("//ul[@class='pv-endorsers__list list-style-none']//li//a")
+			for cont in listContact:
+				url = cont.get_attribute("href")
+				self.logger.info(url)
+				request = scrapy.Request(url, callback=self.parseContact ,headers=self.header,cookies=self.driver.get_cookies())
+				request.meta['item'] = usuario
+				request.meta['profundidad'] = profundidad-1
+				listRequest.append(request)
+
+			self.driver.execute_script("document.getElementsByClassName('artdeco-dismiss')[0].click()")
 
 		return listRequest
 
@@ -221,3 +239,10 @@ class lkSpider(scrapy.Spider):
 		logging.getLogger("scrapy").setLevel(logging.INFO)
 		logging.getLogger("neo4j").setLevel(logging.WARNING)
 		logging.getLogger("selenium").setLevel(logging.INFO)
+
+	def isInt(self,number):
+		try: 
+			int(number)
+			return True
+		except ValueError:
+			return False

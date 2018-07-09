@@ -15,7 +15,9 @@ def index():
 def search():
 	#Hacer peticion POST adjuntando url del usuario
 	url=request.args["q"].split("/")
-	plataforma = url[2].split(".")[1]
+	plataforma = url[2].split(".")[len(url[2].split("."))-2]
+	print(url)
+	print(plataforma)
 	if(plataforma=="mediavida"):
 		r = requests.post('http://localhost:6800/schedule.json', data = {'project':'ScrapySpider','spider':'mv','user':request.args["q"]})
 		session['plataforma'] = "mv"
@@ -29,15 +31,15 @@ def search():
 		r = requests.post('http://localhost:6800/schedule.json', data = {'project':'ScrapySpider','spider':'lk','user':request.args["q"]})
 		session['plataforma'] = "lk"
 	
-	json= r.json()
+	respjson= r.json()
 	print(r.json())
 	print(r.json()['status'])
 	print(plataforma)
 
-	if json['status']=="ok":
+	if respjson['status']=="ok":
 		session['url']=request.args["q"]
 		session['usuario'] = url[-1]
-		session['idSearch'] =json['jobid']
+		session['idSearch'] =respjson['jobid']
 		
 		return render_template('search.html')
 	else:
@@ -58,7 +60,7 @@ def result():
 	links = []
 	conjunto = set()
 	print(session['plataforma'] + ' ' + session['usuario'])
-	session['url'] = "https://twitter.com/Rumiin_GG"
+	session['url'] = "https://twitter.com/PeterDracon70"
 
 	cypher = 'MATCH (userPr:GraphItem {url:"'+session['url']+'"})<-[:RELATION*0..2]-(inicio:GraphItem) RETURN toInteger(avg(toInteger(inicio.score))), count(inicio)'
 	query = graph.run(cypher)
@@ -119,7 +121,7 @@ def result():
 
 			#print(len(data1))
 			#print(len(data2))
-
+	session['usuario'] = data1[0].get('userPr.user')	
 	nodes.append({'user': data1[0].get('userPr.user'),'score':data1[0].get('userPr.score')})
 	conjunto.add(data1[0].get('userPr.user'))
 	for elem in data1:
@@ -143,11 +145,15 @@ def query():
 	nivel = request.args["nivel"]
 	puntuacion = request.args["puntuacion"]
 	data=""
-	usuario = "xeven"
-	nivel = "2"
-	puntuacion = "4400"
+	if (usuario == ""):
+		usuario = session['usuario']
+	if (nivel == ""):
+		nivel = "2"
+	if (puntuacion == ""):
+		puntuacion = "0"
+
 	if (usuario in session['listNodes']):
-		cypher = 'MATCH (userPr:GraphItem {user:"'+usuario+'",plataforma:"'+"mv"+'"})<-[:RELATION*0..'+nivel+']-(n:GraphItem) WHERE toInteger(n.score)>'+puntuacion+' RETURN n'
+		cypher = 'MATCH (userPr:GraphItem {user:"'+usuario+'",plataforma:"'+session['plataforma']+'"})<-[:RELATION*0..'+nivel+']-(n:GraphItem) WHERE toInteger(n.score)>'+puntuacion+' RETURN n'
 		query = graph.run(cypher)
 		data = json.dumps(query.data())
 		print(data)
